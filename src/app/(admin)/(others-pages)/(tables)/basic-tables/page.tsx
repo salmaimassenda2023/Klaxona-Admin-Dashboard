@@ -26,20 +26,19 @@ export default async function BasicTables() {
     }
 
     // Get user role from user_metadata or custom claims
-    const userRole = authData.user.user_metadata?.role || authData.user.app_metadata?.role
+    const userRole = authData.user.user_metadata?.user_type || authData.user.app_metadata?.role
 
     // Redirect non-admin users to unauthorized page or home
-    if (userRole !== 'admin') {
+    if (userRole !== 'ADMIN') {
         redirect('/unauthorized') // or redirect('/')
     }
     const users = await getAllUsersWithRoles()
     return (
         <div>
             <PageBreadcrumb pageTitle="ALL USERS"/>
-            <div className="space-y-6">
-                <ComponentCard title="all users">
+            <div className="space-y-8">
                     <UserManagementClient users={users} currentUserId={authData.user.id} />
-                </ComponentCard>
+
             </div>
         </div>
     );

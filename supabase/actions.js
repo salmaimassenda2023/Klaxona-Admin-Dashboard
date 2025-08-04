@@ -62,25 +62,46 @@ export async function handelGoogleSignIn() {
 export async function handelEmailPasswordSignUp(formData) {
     const supabase = await createClient()
 
-    const data = {
+    // 1. Créer l'utilisateur
+    const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.get('email'),
         password: formData.get('password'),
         options: {
             data: {
-                role: 'user', // Set default role
-                display_name:formData.get('display_name'),
+                user_type: 'CLIENT',
+                full_name: formData.get('display_name'),
             }
         }
-    }
+    })
 
-    const { data: result, error } = await supabase.auth.signUp(data)
-
-    if (error) {
-        console.log('Signup error:', error)
+    if (authError) {
+        console.log('Auth signup error:', authError)
         redirect('/error')
     }
 
-    console.log('User created with role:', result.user?.user_metadata?.role)
+    // 2. Créer le profil manuellement
+    if (authData.user) {
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+                id: authData.user.id,
+                email: authData.user.email,
+                full_name: formData.get('display_name'),
+                user_type: authData.user.user_metadata.user_type, // ou la valeur appropriée de votre ENUM
+                phone_number: null, // à remplir plus tard
+                latitude: null,
+                longitude: null
+            })
+
+        if (profileError) {
+            console.log('Profile creation error:', profileError)
+            // Le user auth existe, vous pouvez gérer le profil plus tard
+        } else {
+            console.log('Profile created successfully')
+        }
+    }
+
+    console.log('User created with role:', authData.user?.user_metadata?.role)
 
     revalidatePath('/', 'layout')
     redirect('/')

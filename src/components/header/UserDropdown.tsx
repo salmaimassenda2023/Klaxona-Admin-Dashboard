@@ -28,7 +28,7 @@ export default function UserDropdown() {
         if (authData?.user) {
           setUserData({
             email: authData.user.email || "",
-            displayName: authData.user.user_metadata?.display_name || "User"
+            displayName: authData.user.user_metadata?.full_name || "User"
           });
         }
       } catch (error) {
