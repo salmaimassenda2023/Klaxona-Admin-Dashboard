@@ -1,0 +1,99 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "userManagement": "User Management",
+    "menu": "Menu",
+    "backToDashboard": "Back to dashboard"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign In",
+      "subtitle": "Enter your email and password to sign in!",
+      "googleButton": "Sign in with Google",
+      "googleButtonLoading": "Signing in...",
+      "or": "Or",
+      "email": "Email",
+      "password": "Password",
+      "keepLoggedIn": "Keep me logged in",
+      "forgotPassword": "Forgot password?",
+      "signInButton": "Sign in",
+      "signingIn": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign Up"
+    },
+    "signUp": {
+      "title": "Sign Up",
+      "subtitle": "Enter your email and password to sign up!",
+      "googleButton": "Sign up with Google",
+      "googleButtonLoading": "Signing up...",
+      "or": "Or",
+      "fullName": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "termsAgreement": "By creating an account means you agree to the",
+      "termsAndConditions": "Terms and Conditions,",
+      "and": "and our",
+      "privacyPolicy": "Privacy Policy",
+      "signUpButton": "Sign Up",
+      "creatingAccount": "Creating Account...",
+      "haveAccount": "Already have an account?",
+      "signInLink": "Sign In"
+    },
+    "placeholders": {
+      "email": "info@gmail.com",
+      "enterEmail": "Enter your email",
+      "password": "Enter your password",
+      "fullName": "Enter your first name"
+    },
+    "required": "*"
+  },
+  "search": {
+    "placeholder": "Search by name, email, role, or ID...",
+    "clear": "Clear search",
+    "resultsFound": "Found {{count}} user{{count, plural, one {} other {s}}} matching \"{{query}}\""
+  },
+  "users": {
+    "title": "ALL USERS",
+    "noUsersFound": "No users found.",
+    "noResultsFound": "No users found matching \"{{query}}\". Try a different search term.",
+    "you": "You",
+    "table": {
+      "fullName": "Full Name",
+      "email": "Email",
+      "role": "Role",
+      "provider": "Provider",
+      "phone": "Phone",
+      "createdAt": "Created At",
+      "lastSignIn": "Last Sign In",
+      "actions": "Actions"
+    },
+    "roles": {
+      "client": "Client",
+      "driver": "Driver",
+      "driver_manager": "Driver Manager",
+      "admin": "Admin",
+      "support": "Support"
+    },
+    "actions": {
+      "editRole": "Edit Role",
+      "deleteUser": "Delete User",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "cannotDeleteOwn": "You cannot delete your own account",
+      "confirmDelete": "Are you sure you want to delete this user? This action cannot be undone.",
+      "deleteSuccess": "User deleted successfully",
+      "updateSuccess": "User role updated successfully",
+      "error": "Error: {{error}}"
+    }
+  },
+  "user": {
+    "signOut": "Sign out",
+    "defaultName": "User",
+    "defaultEmail": "user@example.com"
+  },
+  "common": {
+    "notAvailable": "N/A"
+  }
+}

@@ -1,9 +1,12 @@
+// 1. Updated AppSidebar.tsx with localization
 "use client";
-import React, { useEffect, useRef, useState,useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { useLocale } from "../hooks/useLocales";
+import { createTranslationFunction } from "../../lib/translations.js";
 import {
   ChevronDownIcon,
   GridIcon,
@@ -12,32 +15,33 @@ import {
 } from "../icons/index";
 
 type NavItem = {
-  name: string;
+  nameKey: string; // Changed from 'name' to 'nameKey' for translation keys
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: { nameKey: string; path: string; pro?: boolean; new?: boolean }[];
 };
-
-const navItems: NavItem[] = [
-  {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    path: "/",
-  },
-  {
-    icon: <GroupIcon />,
-    name: "User Management",
-    path: "/basic-tables",
-  },
-];
-
-const othersItems: NavItem[] = [
-
-];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { dictionary, isLoading: isDictionaryLoading } = useLocale();
+  const t = createTranslationFunction(dictionary, isDictionaryLoading);
   const pathname = usePathname();
+
+  // Updated navItems with translation keys
+  const navItems: NavItem[] = [
+    {
+      icon: <GridIcon />,
+      nameKey: "navigation.dashboard",
+      path: "/",
+    },
+    {
+      icon: <GroupIcon />,
+      nameKey: "navigation.userManagement",
+      path: "/basic-tables",
+    },
+  ];
+
+  const othersItems: NavItem[] = [];
 
   const renderMenuItems = (
       navItems: NavItem[],
@@ -45,7 +49,7 @@ const AppSidebar: React.FC = () => {
   ) => (
       <ul className="flex flex-col gap-4">
         {navItems.map((nav, index) => (
-            <li key={nav.name}>
+            <li key={nav.nameKey}>
               {nav.subItems ? (
                   <button
                       onClick={() => handleSubmenuToggle(index, menuType)}
@@ -69,7 +73,7 @@ const AppSidebar: React.FC = () => {
                 {nav.icon}
               </span>
                     {(isExpanded || isHovered || isMobileOpen) && (
-                        <span className={`menu-item-text`}>{nav.name}</span>
+                        <span className={`menu-item-text`}>{t(nav.nameKey)}</span>
                     )}
                     {(isExpanded || isHovered || isMobileOpen) && (
                         <ChevronDownIcon
@@ -104,7 +108,7 @@ const AppSidebar: React.FC = () => {
                   {nav.icon}
                 </span>
                         {(isExpanded || isHovered || isMobileOpen) && (
-                            <span className={`menu-item-text`}>{nav.name}</span>
+                            <span className={`menu-item-text`}>{t(nav.nameKey)}</span>
                         )}
                       </Link>
                   )
@@ -124,7 +128,7 @@ const AppSidebar: React.FC = () => {
                   >
                     <ul className="mt-2 space-y-1 ml-9">
                       {nav.subItems.map((subItem) => (
-                          <li key={subItem.name}>
+                          <li key={subItem.nameKey}>
                             <Link
                                 href={subItem.path}
                                 className={`menu-dropdown-item ${
@@ -133,7 +137,7 @@ const AppSidebar: React.FC = () => {
                                         : "menu-dropdown-item-inactive"
                                 }`}
                             >
-                              {subItem.name}
+                              {t(subItem.nameKey)}
                               <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
                             <span
@@ -143,7 +147,7 @@ const AppSidebar: React.FC = () => {
                                         : "menu-dropdown-badge-inactive"
                                 } menu-dropdown-badge `}
                             >
-                            new
+                            {t('common.new')}
                           </span>
                         )}
                                 {subItem.pro && (
@@ -154,7 +158,7 @@ const AppSidebar: React.FC = () => {
                                                 : "menu-dropdown-badge-inactive"
                                         } menu-dropdown-badge `}
                                     >
-                            pro
+                            {t('common.pro')}
                           </span>
                                 )}
                       </span>
@@ -178,7 +182,6 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => path === pathname;
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
@@ -205,7 +208,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [pathname,isActive]);
+  }, [pathname, isActive, navItems, othersItems]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -232,6 +235,22 @@ const AppSidebar: React.FC = () => {
       return { type: menuType, index };
     });
   };
+
+  // Show loading state while dictionary is loading
+  if (isDictionaryLoading) {
+    return (
+        <aside className="fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen w-[290px] z-50 border-r border-gray-200">
+          <div className="py-8 flex justify-start">
+            <div className="animate-pulse bg-gray-200 dark:bg-gray-700 w-32 h-8 rounded"></div>
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="animate-pulse bg-gray-200 dark:bg-gray-700 w-24 h-4 rounded"></div>
+            <div className="animate-pulse bg-gray-200 dark:bg-gray-700 w-full h-10 rounded"></div>
+            <div className="animate-pulse bg-gray-200 dark:bg-gray-700 w-full h-10 rounded"></div>
+          </div>
+        </aside>
+    );
+  }
 
   return (
       <aside
@@ -293,7 +312,7 @@ const AppSidebar: React.FC = () => {
                     }`}
                 >
                   {isExpanded || isHovered || isMobileOpen ? (
-                      "Menu"
+                      t("navigation.menu")
                   ) : (
                       <HorizontaLDots />
                   )}
@@ -306,5 +325,4 @@ const AppSidebar: React.FC = () => {
       </aside>
   );
 };
-
 export default AppSidebar;

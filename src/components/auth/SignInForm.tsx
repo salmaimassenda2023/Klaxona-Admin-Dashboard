@@ -1,17 +1,27 @@
+// 1. Updated SignInForm.js
 "use client";
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
+import LanguageSwitcher from "../header/LanguageSwitcher.js"; // Add this
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
-import { handelSignInWithCredentials, handelGoogleSignIn } from "../../../supabase/actions"; // Import your actions
+import { handelSignInWithCredentials, handelGoogleSignIn } from "../../../supabase/actions";
+import { useLocale } from '../../hooks/useLocales.js';
+import { createTranslationFunction } from '../../../lib/translations.js';
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Use the locale hook
+  const { dictionary, isLoading: isDictionaryLoading } = useLocale();
+
+  // Create translation function
+  const t = createTranslationFunction(dictionary, isDictionaryLoading);
 
   // Handle Google Sign In
   const handleGoogleSignIn = async () => {
@@ -20,31 +30,46 @@ export default function SignInForm() {
       await handelGoogleSignIn();
     } catch (error) {
       console.error("Google sign in error:", error);
-      // Handle error (show toast, etc.)
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Show loading state while dictionary is loading
+  if (isDictionaryLoading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-gray-500 dark:text-gray-400">
+            Loading...
+          </div>
+        </div>
+    );
+  }
+
   return (
       <div className="flex flex-col flex-1 lg:w-1/2 w-full">
+        {/* Language Switcher */}
+        <div className="fixed top-6 right-200 z-50">
+          <LanguageSwitcher />
+        </div>
+
         <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
           <Link
               href="/"
               className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             <ChevronLeftIcon />
-            Back to dashboard
+            {t('navigation.backToDashboard')}
           </Link>
         </div>
         <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
           <div>
             <div className="mb-5 sm:mb-8">
               <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-                Sign In
+                {t('auth.signIn.title')}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Enter your email and password to sign in!
+                {t('auth.signIn.subtitle')}
               </p>
             </div>
             <div>
@@ -78,7 +103,7 @@ export default function SignInForm() {
                         fill="#EB4335"
                     />
                   </svg>
-                  {isLoading ? "Signing in..." : "Sign in with Google"}
+                  {isLoading ? t('auth.signIn.googleButtonLoading') : t('auth.signIn.googleButton')}
                 </button>
               </div>
               <div className="relative py-3 sm:py-5">
@@ -87,7 +112,7 @@ export default function SignInForm() {
                 </div>
                 <div className="relative flex justify-center text-sm">
                 <span className="p-2 text-gray-400 bg-white dark:bg-gray-900 sm:px-5 sm:py-2">
-                  Or
+                  {t('auth.signIn.or')}
                 </span>
                 </div>
               </div>
@@ -95,10 +120,10 @@ export default function SignInForm() {
                 <div className="space-y-6">
                   <div>
                     <Label>
-                      Email <span className="text-error-500">*</span>
+                      {t('auth.signIn.email')} <span className="text-error-500">{t('auth.required')}</span>
                     </Label>
                     <Input
-                        placeholder="info@gmail.com"
+                        placeholder={t('auth.placeholders.email')}
                         type="email"
                         name="email"
                         id="email"
@@ -107,12 +132,12 @@ export default function SignInForm() {
                   </div>
                   <div>
                     <Label>
-                      Password <span className="text-error-500">*</span>
+                      {t('auth.signIn.password')} <span className="text-error-500">{t('auth.required')}</span>
                     </Label>
                     <div className="relative">
                       <Input
                           type={showPassword ? "text" : "password"}
-                          placeholder="Enter your password"
+                          placeholder={t('auth.placeholders.password')}
                           name="password"
                           id="password"
                           required
@@ -133,14 +158,14 @@ export default function SignInForm() {
                     <div className="flex items-center gap-3">
                       <Checkbox checked={isChecked} onChange={setIsChecked} />
                       <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                      Keep me logged in
+                      {t('auth.signIn.keepLoggedIn')}
                     </span>
                     </div>
                     <Link
                         href="/reset-password"
                         className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
                     >
-                      Forgot password?
+                      {t('auth.signIn.forgotPassword')}
                     </Link>
                   </div>
                   <div>
@@ -150,7 +175,7 @@ export default function SignInForm() {
                         size="sm"
                         disabled={isLoading}
                     >
-                      {isLoading ? "Signing in..." : "Sign in"}
+                      {isLoading ? t('auth.signIn.signingIn') : t('auth.signIn.signInButton')}
                     </Button>
                   </div>
                 </div>
@@ -158,12 +183,12 @@ export default function SignInForm() {
 
               <div className="mt-5">
                 <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                  Don&apos;t have an account?{" "}
+                  {t('auth.signIn.noAccount')}{" "}
                   <Link
                       href="/signup"
                       className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
-                    Sign Up
+                    {t('auth.signIn.signUpLink')}
                   </Link>
                 </p>
               </div>

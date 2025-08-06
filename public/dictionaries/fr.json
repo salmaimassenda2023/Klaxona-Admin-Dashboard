@@ -1,0 +1,99 @@
+{
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "userManagement": "Gestion des utilisateurs",
+    "menu": "Menu",
+    "backToDashboard": "Retour au tableau de bord"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Se connecter",
+      "subtitle": "Entrez votre email et mot de passe pour vous connecter !",
+      "googleButton": "Se connecter avec Google",
+      "googleButtonLoading": "Connexion en cours...",
+      "or": "Ou",
+      "email": "Email",
+      "password": "Mot de passe",
+      "keepLoggedIn": "Rester connecté",
+      "forgotPassword": "Mot de passe oublié ?",
+      "signInButton": "Se connecter",
+      "signingIn": "Connexion en cours...",
+      "noAccount": "Vous n'avez pas de compte ?",
+      "signUpLink": "S'inscrire"
+    },
+    "signUp": {
+      "title": "S'inscrire",
+      "subtitle": "Entrez votre email et mot de passe pour vous inscrire !",
+      "googleButton": "S'inscrire avec Google",
+      "googleButtonLoading": "Inscription en cours...",
+      "or": "Ou",
+      "fullName": "Nom complet",
+      "email": "Email",
+      "password": "Mot de passe",
+      "termsAgreement": "En créant un compte, vous acceptez les",
+      "termsAndConditions": "Conditions d'utilisation,",
+      "and": "et notre",
+      "privacyPolicy": "Politique de confidentialité",
+      "signUpButton": "S'inscrire",
+      "creatingAccount": "Création du compte...",
+      "haveAccount": "Vous avez déjà un compte ?",
+      "signInLink": "Se connecter"
+    },
+    "placeholders": {
+      "email": "info@gmail.com",
+      "enterEmail": "Entrez votre email",
+      "password": "Entrez votre mot de passe",
+      "fullName": "Entrez votre nom complet"
+    },
+    "required": "*"
+  },
+  "search": {
+    "placeholder": "Rechercher par nom, email, rôle ou ID...",
+    "clear": "Effacer la recherche",
+    "resultsFound": "{{count}} utilisateur{{count, plural, one {} other {s}}} trouvé{{count, plural, one {} other {s}}} pour \"{{query}}\""
+  },
+  "users": {
+    "title": "Tous les utilisateurs",
+    "noUsersFound": "Aucun utilisateur trouvé.",
+    "noResultsFound": "Aucun utilisateur trouvé pour \"{{query}}\". Essayez un autre terme de recherche.",
+    "you": "Vous",
+    "table": {
+      "fullName": "Nom complet",
+      "email": "Email",
+      "role": "Rôle",
+      "provider": "Fournisseur",
+      "phone": "Téléphone",
+      "createdAt": "Créé le",
+      "lastSignIn": "Dernière connexion",
+      "actions": "Actions"
+    },
+    "roles": {
+      "client": "Client",
+      "driver": "Driver",
+      "driver_manager": "Driver Manager",
+      "admin": "Admin",
+      "support": "Support"
+    },
+    "actions": {
+      "editRole": "Modifier le rôle",
+      "deleteUser": "Supprimer l'utilisateur",
+      "save": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "messages": {
+      "cannotDeleteOwn": "Vous ne pouvez pas supprimer votre propre compte",
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action ne peut pas être annulée.",
+      "deleteSuccess": "Utilisateur supprimé avec succès",
+      "updateSuccess": "Rôle de l'utilisateur mis à jour avec succès",
+      "error": "Erreur : {{error}}"
+    }
+  },
+  "user": {
+    "signOut": "Se Deconnecter",
+    "defaultName": "Utilisateur",
+    "defaultEmail": "user@example.com"
+  },
+  "common": {
+    "notAvailable": "N/A"
+  }
+}

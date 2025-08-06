@@ -2,7 +2,9 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { createClient } from "../../../supabase/client"; // Adjust import path as needed
+import { createClient } from "../../../supabase/client";
+import { useLocale } from '../../hooks/useLocales.js';
+import { createTranslationFunction } from '../../../lib/translations.js';
 
 interface UserData {
   email: string;
@@ -14,10 +16,16 @@ export default function UserDropdown() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Use the locale hook
+  const { dictionary, isLoading: isDictionaryLoading } = useLocale();
+
+  // Create translation function
+  const t = createTranslationFunction(dictionary, isDictionaryLoading);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const supabase = createClient(); // Use your client-side createClient function
+        const supabase = createClient();
         const { data: authData, error: authError } = await supabase.auth.getUser();
 
         if (authError) {
@@ -28,7 +36,7 @@ export default function UserDropdown() {
         if (authData?.user) {
           setUserData({
             email: authData.user.email || "",
-            displayName: authData.user.user_metadata?.full_name || "User"
+            displayName: authData.user.user_metadata?.full_name || t('user.defaultName') || "User"
           });
         }
       } catch (error) {
@@ -39,7 +47,7 @@ export default function UserDropdown() {
     };
 
     fetchUserData();
-  }, []);
+  }, [t]);
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.stopPropagation();
@@ -51,7 +59,7 @@ export default function UserDropdown() {
   }
 
   // Show loading state
-  if (loading) {
+  if (loading || isDictionaryLoading) {
     return (
         <div className="relative">
           <div className="flex items-center text-gray-700 dark:text-gray-400">
@@ -68,11 +76,9 @@ export default function UserDropdown() {
             onClick={toggleDropdown}
             className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
         >
-
-
           <span className="block mr-1 font-medium text-theme-sm">
-          {userData?.displayName || "User"}
-        </span>
+            {userData?.displayName || t('user.defaultName') || "User"}
+          </span>
 
           <svg
               className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
@@ -100,14 +106,13 @@ export default function UserDropdown() {
             className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
         >
           <div>
-          <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            {userData?.displayName || "User"}
-          </span>
+            <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
+              {userData?.displayName || t('user.defaultName') || "User"}
+            </span>
             <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            {userData?.email || "user@example.com"}
-          </span>
+              {userData?.email || t('user.defaultEmail') || "user@example.com"}
+            </span>
           </div>
-
 
           <Link
               href="/signin"
@@ -128,7 +133,7 @@ export default function UserDropdown() {
                   fill=""
               />
             </svg>
-            Sign out
+            {t('user.signOut')}
           </Link>
         </Dropdown>
       </div>

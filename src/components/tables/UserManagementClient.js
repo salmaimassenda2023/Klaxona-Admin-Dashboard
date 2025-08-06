@@ -4,16 +4,59 @@ import {Table, TableBody, TableCell, TableHeader, TableRow} from "../ui/table";
 import { FaEdit, FaTrash, FaCheck, FaTimes } from "react-icons/fa"
 import { deleteUser, updateUserRole } from '../../../supabase/users'
 import { formatDate } from './dateUtils'
+import { useLocale } from '../../hooks/useLocales.js' // Import the hook
 
+// Updated ROLES array to match your database enum
+const ROLES = ['CLIENT', 'DRIVER', 'DRIVER_MANAGER', 'ADMIN', 'SUPPORT']
 
-const ROLES = ['user', 'admin', 'moderator']
-
+// Remove dictionary from props since we're using the hook now
 export default function UserManagementClient({ users: initialUsers, currentUserId }) {
     const [users, setUsers] = useState(initialUsers)
     const [editingUser, setEditingUser] = useState(null)
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState('')
     const [searchQuery, setSearchQuery] = useState('')
+
+    // Use the locale hook instead of prop
+    const { dictionary, isLoading: isDictionaryLoading } = useLocale()
+
+    // Helper function to get nested dictionary values
+    const t = (key) => {
+        if (isDictionaryLoading || !dictionary) {
+            return key // Return key if dictionary is still loading
+        }
+
+        const keys = key.split('.')
+        let value = dictionary
+        for (const k of keys) {
+            value = value?.[k]
+        }
+        return value || key // Return key if translation not found
+    }
+
+    // Helper function for translations with interpolation
+    const tWithParams = (key, params = {}) => {
+        let translation = t(key)
+        if (typeof translation === 'string') {
+            // Replace {{param}} with actual values
+            Object.keys(params).forEach(param => {
+                const regex = new RegExp(`{{${param}}}`, 'g')
+                translation = translation.replace(regex, params[param])
+            })
+
+            // Handle simple pluralization
+            if (params.count !== undefined) {
+                const count = params.count
+                // Simple plural handling for English
+                if (count === 1) {
+                    translation = translation.replace(/{{count, plural, one \{\} other \{s\}}}/g, '')
+                } else {
+                    translation = translation.replace(/{{count, plural, one \{\} other \{s\}}}/g, 's')
+                }
+            }
+        }
+        return translation
+    }
 
     // Filter users based on search query
     const filteredUsers = useMemo(() => {
@@ -44,11 +87,11 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
 
     const handleDeleteUser = async (userId) => {
         if (userId === currentUserId) {
-            setMessage('You cannot delete your own account')
+            setMessage(t('users.messages.cannotDeleteOwn'))
             return
         }
 
-        if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        if (!confirm(t('users.messages.confirmDelete'))) {
             return
         }
 
@@ -56,9 +99,9 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
         try {
             await deleteUser(userId)
             setUsers(users.filter(user => user.id !== userId))
-            setMessage('User deleted successfully')
+            setMessage(t('users.messages.deleteSuccess'))
         } catch (error) {
-            setMessage(`Error: ${error.message}`)
+            setMessage(tWithParams('users.messages.error', { error: error.message }))
         } finally {
             setLoading(false)
         }
@@ -80,13 +123,13 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
             await updateUserRole(editingUser.id, editingUser.role)
             setUsers(users.map(user =>
                 user.id === editingUser.id
-                    ? { ...user, role: editingUser.role, user_metadata: { ...user.user_metadata, role: editingUser.role } }
+                    ? { ...user, role: editingUser.role, user_metadata: { ...user.user_metadata, user_type: editingUser.role } }
                     : user
             ))
-            setMessage('User role updated successfully')
+            setMessage(t('users.messages.updateSuccess'))
             setEditingUser(null)
         } catch (error) {
-            setMessage(`Error: ${error.message}`)
+            setMessage(tWithParams('users.messages.error', { error: error.message }))
         } finally {
             setLoading(false)
         }
@@ -102,6 +145,43 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
 
     const clearSearch = () => {
         setSearchQuery('')
+    }
+
+    // Updated function to handle the new role mapping
+    const getRoleDisplayName = (role) => {
+        if (!role) return t('users.roles.client') // Default to client
+
+        // Convert database role to translation key
+        const roleKey = role.toLowerCase().replace('_', '_') // Keep underscores for DRIVER_MANAGER
+        return t(`users.roles.${roleKey}`) || role // Fallback to original role if translation not found
+    }
+
+    // Function to get role badge color
+    const getRoleBadgeColor = (role) => {
+        switch (role) {
+            case 'ADMIN':
+                return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+            case 'DRIVER_MANAGER':
+                return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+            case 'SUPPORT':
+                return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+            case 'DRIVER':
+                return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+            case 'CLIENT':
+            default:
+                return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+        }
+    }
+
+    // Show loading state while dictionary is loading
+    if (isDictionaryLoading) {
+        return (
+            <div className="flex items-center justify-center py-8">
+                <div className="text-gray-500 dark:text-gray-400">
+                    Loading translations...
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -129,7 +209,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                 {/* Search Input */}
                 <input
                     type="text"
-                    placeholder="Search by name, email, role, or ID..."
+                    placeholder={t('search.placeholder')}
                     value={searchQuery}
                     onChange={handleSearchChange}
                     className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
@@ -139,6 +219,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                 {searchQuery ? (
                     <button
                         onClick={clearSearch}
+                        title={t('search.clear')}
                         className="absolute inset-y-0 right-2.5 flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400 dark:hover:bg-white/[0.06]"
                     >
                         <span>✕</span>
@@ -155,8 +236,10 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
             {searchQuery && (
                 <div className="mb-3">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}
-                        {searchQuery && ` matching "${searchQuery}"`}
+                        {tWithParams('search.resultsFound', {
+                            count: filteredUsers.length,
+                            query: searchQuery
+                        })}
                     </p>
                 </div>
             )}
@@ -179,49 +262,49 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                     >
-                                        Full Name
+                                        {t('users.table.fullName')}
                                     </TableCell>
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                     >
-                                        Email
+                                        {t('users.table.email')}
                                     </TableCell>
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                     >
-                                        Role
+                                        {t('users.table.role')}
                                     </TableCell>
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                     >
-                                        Provider
+                                        {t('users.table.provider')}
                                     </TableCell>
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                     >
-                                        Phone
+                                        {t('users.table.phone')}
                                     </TableCell>
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                     >
-                                        Created At
+                                        {t('users.table.createdAt')}
                                     </TableCell>
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                     >
-                                        Last Sign In
+                                        {t('users.table.lastSignIn')}
                                     </TableCell>
                                     <TableCell
                                         isHeader
                                         className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                     >
-                                        Actions
+                                        {t('users.table.actions')}
                                     </TableCell>
                                 </TableRow>
                             </TableHeader>
@@ -232,7 +315,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                     <TableRow key={user.id}>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                             <div className="flex -space-x-2">
-                                                {user.user_metadata?.full_name || 'N/A'}
+                                                {user.user_metadata?.full_name || t('common.notAvailable')}
                                             </div>
                                         </TableCell>
                                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-700 dark:text-blue-100">
@@ -240,7 +323,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                                 {user.email}
                                                 {user.id === currentUserId && (
                                                     <span className="ml-2 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 rounded">
-                                                        You
+                                                        {t('users.you')}
                                                     </span>
                                                 )}
                                             </div>
@@ -248,23 +331,19 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                             {editingUser?.id === user.id ? (
                                                 <select
-                                                    value={editingUser.user_metadata?.user_type}
+                                                    value={editingUser.user_metadata?.user_type || editingUser.role}
                                                     onChange={(e) => handleRoleChange(e.target.value)}
                                                     className="border rounded px-2 py-1 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
                                                 >
                                                     {ROLES.map(role => (
                                                         <option key={role} value={role}>
-                                                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                                                            {getRoleDisplayName(role)}
                                                         </option>
                                                     ))}
                                                 </select>
                                             ) : (
-                                                <span className={`px-2 py-1 rounded text-xs ${
-                                                    user.user_metadata?.user_type === 'admin' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
-                                                        user.user_metadata?.user_type === 'moderator' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                                                            'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                                }`}>
-                                                    {user.user_metadata?.user_type?.charAt(0).toUpperCase() + user.user_metadata?.user_type?.slice(1) || 'User'}
+                                                <span className={`px-2 py-1 rounded text-xs ${getRoleBadgeColor(user.user_metadata?.user_type)}`}>
+                                                    {getRoleDisplayName(user.user_metadata?.user_type)}
                                                 </span>
                                             )}
                                         </TableCell>
@@ -275,7 +354,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                         </TableCell>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                             <div className="flex -space-x-2">
-                                                {user.user_metadata?.phone_number || 'N/A'}
+                                                {user.user_metadata?.phone_number || t('common.notAvailable')}
                                             </div>
                                         </TableCell>
 
@@ -296,7 +375,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                                 {editingUser?.id === user.id ? (
                                                     <>
                                                         <button
-                                                            title="Save"
+                                                            title={t('users.actions.save')}
                                                             className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                                                             onClick={handleSaveEdit}
                                                             disabled={loading}
@@ -304,7 +383,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                                             <FaCheck />
                                                         </button>
                                                         <button
-                                                            title="Cancel"
+                                                            title={t('users.actions.cancel')}
                                                             className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
                                                             onClick={handleCancelEdit}
                                                             disabled={loading}
@@ -315,7 +394,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                                 ) : (
                                                     <>
                                                         <button
-                                                            title="Edit Role"
+                                                            title={t('users.actions.editRole')}
                                                             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                                             onClick={() => handleStartEdit(user)}
                                                             disabled={loading}
@@ -323,7 +402,7 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                                                             <FaEdit />
                                                         </button>
                                                         <button
-                                                            title="Delete User"
+                                                            title={t('users.actions.deleteUser')}
                                                             className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                                                             onClick={() => handleDeleteUser(user.id)}
                                                             disabled={loading || user.id === currentUserId}
@@ -342,11 +421,13 @@ export default function UserManagementClient({ users: initialUsers, currentUserI
                 </div>
                 {filteredUsers.length === 0 && searchQuery && (
                     <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                        No users found matching "{searchQuery}". Try a different search term.
+                        {tWithParams('users.noResultsFound', { query: searchQuery })}
                     </p>
                 )}
                 {filteredUsers.length === 0 && !searchQuery && (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">No users found.</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                        {t('users.noUsersFound')}
+                    </p>
                 )}
             </div>
         </div>

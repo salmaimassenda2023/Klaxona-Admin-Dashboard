@@ -1,16 +1,26 @@
+// 5. Updated SignUpForm.js - Fixed import paths
 "use client";
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
+import LanguageSwitcher from "../header/LanguageSwitcher.js";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
-import { handelEmailPasswordSignUp, handelGoogleSignIn } from "../../../supabase/actions"; // Import your actions
+import { handelEmailPasswordSignUp, handelGoogleSignIn } from "../../../supabase/actions";
+import { useLocale } from '../../hooks/useLocales.js';
+import { createTranslationFunction } from '../../../lib/translations.js';
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Use the locale hook
+  const { dictionary, isLoading: isDictionaryLoading } = useLocale();
+
+  // Create translation function
+  const t = createTranslationFunction(dictionary, isDictionaryLoading);
 
   // Handle Google Sign Up
   const handleGoogleSignUp = async () => {
@@ -19,31 +29,46 @@ export default function SignUpForm() {
       await handelGoogleSignIn();
     } catch (error) {
       console.error("Google sign up error:", error);
-      // Handle error (show toast, etc.)
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Show loading state while dictionary is loading
+  if (isDictionaryLoading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-gray-500 dark:text-gray-400">
+            Loading...
+          </div>
+        </div>
+    );
+  }
+
   return (
-      <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
+      <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar ">
+        {/* Language Switcher */}
+        <div className="fixed top-6 right-200 z-50">
+          <LanguageSwitcher />
+        </div>
+
         <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
           <Link
               href="/"
               className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             <ChevronLeftIcon />
-            Back to dashboard
+            {t('navigation.backToDashboard')}
           </Link>
         </div>
         <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
           <div>
             <div className="mb-5 sm:mb-8">
               <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-                Sign Up
+                {t('auth.signUp.title')}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Enter your email and password to sign up!
+                {t('auth.signUp.subtitle')}
               </p>
             </div>
             <div>
@@ -77,7 +102,7 @@ export default function SignUpForm() {
                         fill="#EB4335"
                     />
                   </svg>
-                  {isLoading ? "Signing up..." : "Sign up with Google"}
+                  {isLoading ? t('auth.signUp.googleButtonLoading') : t('auth.signUp.googleButton')}
                 </button>
               </div>
               <div className="relative py-3 sm:py-5">
@@ -86,48 +111,48 @@ export default function SignUpForm() {
                 </div>
                 <div className="relative flex justify-center text-sm">
                 <span className="p-2 text-gray-400 bg-white dark:bg-gray-900 sm:px-5 sm:py-2">
-                  Or
+                  {t('auth.signUp.or')}
                 </span>
                 </div>
               </div>
               <form action={handelEmailPasswordSignUp}>
                 <div className="space-y-5">
-
-                  {/* <!-- First Name --> */}
+                  {/* Full Name */}
                   <div className="sm:col-span-1">
                     <Label>
-                      Full Name<span className="text-error-500">*</span>
+                      {t('auth.signUp.fullName')}<span className="text-error-500">{t('auth.required')}</span>
                     </Label>
                     <Input
                         type="text"
                         id="fname"
                         name="display_name"
-                        placeholder="Enter your first name"
+                        placeholder={t('auth.placeholders.fullName')}
                         required
                     />
                   </div>
 
-                  {/* <!-- Email --> */}
+                  {/* Email */}
                   <div>
                     <Label>
-                      Email<span className="text-error-500">*</span>
+                      {t('auth.signUp.email')}<span className="text-error-500">{t('auth.required')}</span>
                     </Label>
                     <Input
                         type="email"
                         id="email"
                         name="email"
-                        placeholder="Enter your email"
+                        placeholder={t('auth.placeholders.enterEmail')}
                         required
                     />
                   </div>
-                  {/* <!-- Password --> */}
+
+                  {/* Password */}
                   <div>
                     <Label>
-                      Password<span className="text-error-500">*</span>
+                      {t('auth.signUp.password')}<span className="text-error-500">{t('auth.required')}</span>
                     </Label>
                     <div className="relative">
                       <Input
-                          placeholder="Enter your password"
+                          placeholder={t('auth.placeholders.password')}
                           type={showPassword ? "text" : "password"}
                           name="password"
                           required
@@ -144,7 +169,8 @@ export default function SignUpForm() {
                     </span>
                     </div>
                   </div>
-                  {/* <!-- Checkbox --> */}
+
+                  {/* Terms Checkbox */}
                   <div className="flex items-center gap-3">
                     <Checkbox
                         className="w-5 h-5"
@@ -152,24 +178,25 @@ export default function SignUpForm() {
                         onChange={setIsChecked}
                     />
                     <p className="inline-block font-normal text-gray-500 dark:text-gray-400">
-                      By creating an account means you agree to the{" "}
+                      {t('auth.signUp.termsAgreement')}{" "}
                       <span className="text-gray-800 dark:text-white/90">
-                      Terms and Conditions,
+                      {t('auth.signUp.termsAndConditions')}
                     </span>{" "}
-                      and our{" "}
+                      {t('auth.signUp.and')}{" "}
                       <span className="text-gray-800 dark:text-white">
-                      Privacy Policy
+                      {t('auth.signUp.privacyPolicy')}
                     </span>
                     </p>
                   </div>
-                  {/* <!-- Button --> */}
+
+                  {/* Submit Button */}
                   <div>
                     <button
                         type="submit"
                         disabled={!isChecked || isLoading}
                         className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoading ? "Creating Account..." : "Sign Up"}
+                      {isLoading ? t('auth.signUp.creatingAccount') : t('auth.signUp.signUpButton')}
                     </button>
                   </div>
                 </div>
@@ -177,12 +204,12 @@ export default function SignUpForm() {
 
               <div className="mt-5">
                 <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400">
-                  Already have an account?{" "}
+                  {t('auth.signUp.haveAccount')}{" "}
                   <Link
                       href="/signin"
                       className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
-                    Sign In
+                    {t('auth.signUp.signInLink')}
                   </Link>
                 </p>
               </div>

@@ -1,44 +1,100 @@
-import ComponentCard from "@/components/common/ComponentCard";
+"use client";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { Metadata } from "next";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { getAllUsersWithRoles } from '../../../../../../supabase/users'
-import { createClient } from '../../../../../../supabase/server'
-import { redirect } from 'next/navigation'
+import { createClient } from '../../../../../../supabase/client.js' // Use browser client for client components
+import { redirect, useRouter } from 'next/navigation'
 import UserManagementClient from '../../../../../components/tables/UserManagementClient'
+import { useLocale } from '../../../../../hooks/useLocales.js';
+import { createTranslationFunction } from '../../../../../../lib/translations.js';
 
-export const metadata: Metadata = {
-  title: "Next.js Basic Table | TailAdmin - Next.js Dashboard Template",
-  description:
-    "This is Next.js Basic Table  page for TailAdmin  Tailwind CSS Admin Dashboard Template",
-  // other metadata
-};
+export default function BasicTables() {
+    const [users, setUsers] = useState<any[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [authError, setAuthError] = useState<Error | null>(null);
+    const router = useRouter();
 
-export default async function BasicTables() {
-    // Check if current user is authenticated and is admin
-    const supabase = await createClient()
-    const {data: authData, error: authError} = await supabase.auth.getUser()
-    console.log("info User :" ,authData.user)
+    // Use the locale hook
+    const { dictionary, isLoading: isDictionaryLoading } = useLocale();
 
-    // Redirect if not authenticated
-    if (authError || !authData?.user) {
-        redirect('/signin')
+    // Create translation function
+    const t = createTranslationFunction(dictionary, isDictionaryLoading);
+
+    useEffect(() => {
+        async function checkAuthAndLoadData() {
+            try {
+                setIsLoading(true);
+
+                // Check authentication
+                const supabase = createClient();
+                const { data: authData, error: authError } = await supabase.auth.getUser();
+
+                if (authError || !authData?.user) {
+                    router.push('/signin');
+                    return;
+                }
+
+                // Check if user is admin
+                const userRole = authData.user.user_metadata?.user_type || authData.user.app_metadata?.role;
+
+                if (userRole !== 'ADMIN') {
+                    router.push('/unauthorized');
+                    return;
+                }
+
+                // Set current user ID
+                setCurrentUserId(authData.user.id);
+
+                // Load users data
+                const usersData = await getAllUsersWithRoles();
+                setUsers(usersData);
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                setAuthError(error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        checkAuthAndLoadData();
+    }, [router]);
+
+    // Show loading state while dictionary or data is loading
+    if (isDictionaryLoading || isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-gray-500 dark:text-gray-400">
+                    {t('common.loading')}
+                </div>
+            </div>
+        );
     }
 
-    // Get user role from user_metadata or custom claims
-    const userRole = authData.user.user_metadata?.user_type || authData.user.app_metadata?.role
-
-    // Redirect non-admin users to unauthorized page or home
-    if (userRole !== 'ADMIN') {
-        redirect('/unauthorized') // or redirect('/')
+    // Show error state
+    if (authError) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-red-500">
+                    {t('users.messages.error').replace('{{error}}', authError.message)}
+                </div>
+            </div>
+        );
     }
-    const users = await getAllUsersWithRoles()
+
     return (
         <div>
-            <PageBreadcrumb pageTitle="ALL USERS"/>
+            <PageBreadcrumb
+                pageTitle={t('users.title')}
+                dictionary={dictionary}
+            />
             <div className="space-y-8">
-                    <UserManagementClient users={users} currentUserId={authData.user.id} />
-
+                <UserManagementClient
+                    users={users}
+                    currentUserId={currentUserId}
+                    dictionary={dictionary}
+                />
             </div>
         </div>
     );
