@@ -43,7 +43,8 @@ export const EcommerceMetrics = () => {
 
       } catch (err) {
         console.error('Error fetching profile counts:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+
       } finally {
         setLoading(false);
       }
