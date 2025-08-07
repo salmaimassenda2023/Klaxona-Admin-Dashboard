@@ -53,7 +53,8 @@ export default function BasicTables() {
 
             } catch (error) {
                 console.error('Error loading data:', error);
-                setAuthError(error);
+                // Fix: Properly type the error
+                setAuthError(error instanceof Error ? error : new Error('An unknown error occurred'));
             } finally {
                 setIsLoading(false);
             }
