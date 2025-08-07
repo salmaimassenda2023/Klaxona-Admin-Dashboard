@@ -127,7 +127,6 @@ export default function SignInForm() {
                         type="email"
                         name="email"
                         id="email"
-                        required
                     />
                   </div>
                   <div>
