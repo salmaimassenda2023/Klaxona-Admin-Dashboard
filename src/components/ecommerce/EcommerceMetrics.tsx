@@ -8,7 +8,8 @@ export const EcommerceMetrics = () => {
   const [clientCount, setClientCount] = useState(0);
   const [driverCount, setDriverCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Fix: Change the type from null to string | null
+  const [error, setError] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -54,7 +55,7 @@ export const EcommerceMetrics = () => {
   }, [supabase]);
 
   // Format numbers with commas
-  const formatNumber = (num) => {
+  const formatNumber = (num: number) => {
     return num.toLocaleString();
   };
 
