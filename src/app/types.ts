@@ -3,8 +3,8 @@
 export interface User {
     id: string;
     email?: string;
-    created_at: string;
-    last_sign_in_at: string;
+    created_at?: string;
+    last_sign_in_at?: string;
     user_metadata?: {
         full_name?: string;
         phone_number?: string;
