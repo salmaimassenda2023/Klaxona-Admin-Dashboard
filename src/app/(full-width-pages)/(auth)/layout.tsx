@@ -1,12 +1,9 @@
 import GridShape from "@/components/common/GridShape";
 import ThemeTogglerTwo from "@/components/common/ThemeTogglerTwo";
-
 import { ThemeProvider } from "@/context/ThemeContext";
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 import {LocaleProvider} from "@/hooks/useLocales";
-import LanguageSwitcher from "@/components/header/LanguageSwitcher";
 
 export default function AuthLayout({
   children,
