@@ -139,7 +139,6 @@ export default function SignInForm() {
                           placeholder={t('auth.placeholders.password')}
                           name="password"
                           id="password"
-                          required
                       />
                       <span
                           onClick={() => setShowPassword(!showPassword)}

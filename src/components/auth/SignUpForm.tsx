@@ -127,7 +127,8 @@ export default function SignUpForm() {
                         id="fname"
                         name="display_name"
                         placeholder={t('auth.placeholders.fullName')}
-                        required
+
+
                     />
                   </div>
 
@@ -141,7 +142,6 @@ export default function SignUpForm() {
                         id="email"
                         name="email"
                         placeholder={t('auth.placeholders.enterEmail')}
-                        required
                     />
                   </div>
 
@@ -155,7 +155,7 @@ export default function SignUpForm() {
                           placeholder={t('auth.placeholders.password')}
                           type={showPassword ? "text" : "password"}
                           name="password"
-                          required
+
                       />
                       <span
                           onClick={() => setShowPassword(!showPassword)}
