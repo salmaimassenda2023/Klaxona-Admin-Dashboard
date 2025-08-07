@@ -7,10 +7,10 @@ import { useRouter } from 'next/navigation'
 import UserManagementClient from '../../../../../components/tables/UserManagementClient'
 import { useLocale } from '../../../../../hooks/useLocales.js';
 import { createTranslationFunction } from '../../../../../../lib/translations.js';
-
+import { User } from '../../../../types'
 
 export default function BasicTables() {
-    const [users, setUsers] = useState<[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [authError, setAuthError] = useState<Error | null>(null);
