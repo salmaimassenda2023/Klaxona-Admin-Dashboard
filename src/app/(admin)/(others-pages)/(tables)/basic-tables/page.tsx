@@ -89,13 +89,11 @@ export default function BasicTables() {
         <div>
             <PageBreadcrumb
                 pageTitle={t('users.title')}
-                dictionary={dictionary}
             />
             <div className="space-y-8">
                 <UserManagementClient
                     users={users}
                     currentUserId={currentUserId}
-                    dictionary={dictionary}
                 />
             </div>
         </div>
