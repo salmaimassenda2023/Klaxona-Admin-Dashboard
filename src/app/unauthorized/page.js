@@ -1,3 +1,5 @@
+import Link from "next/link.js";
+
 export default function Unauthorized() {
     return (
         <div className="p-8 max-w-md mx-auto mt-20">
@@ -6,9 +8,9 @@ export default function Unauthorized() {
                 <p className="text-red-700 mb-4">
                     You don't have permission to access this page.
                 </p>
-                <a href="/" className="text-blue-600 hover:underline">
+                <Link href="/" className="text-blue-600 hover:underline">
                     Go to Home
-                </a>
+                </Link>
             </div>
         </div>
     )

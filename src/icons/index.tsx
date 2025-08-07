@@ -4,6 +4,7 @@ import BoxIcon from "./box.svg";
 import CheckCircleIcon from "./check-circle.svg";
 import ArrowUpIcon from "./arrow-up.svg";
 import ArrowDownIcon from "./arrow-down.svg";
+import PlusIcon from "./plus.svg";
 import FolderIcon from "./folder.svg";
 import GridIcon from "./grid.svg";
 import FileIcon from "./file.svg";
@@ -26,6 +27,7 @@ import HorizontaLDots from "./horizontal-dots.svg";
 import MoreDotIcon from "./more-dot.svg";
 
 export {
+  PlusIcon,
   MoreDotIcon,
   FileIcon,
   GridIcon,

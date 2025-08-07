@@ -3,7 +3,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import React, { useState, useEffect } from "react";
 import { getAllUsersWithRoles } from '../../../../../../supabase/users'
 import { createClient } from '../../../../../../supabase/client.js' // Use browser client for client components
-import { redirect, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import UserManagementClient from '../../../../../components/tables/UserManagementClient'
 import { useLocale } from '../../../../../hooks/useLocales.js';
 import { createTranslationFunction } from '../../../../../../lib/translations.js';
