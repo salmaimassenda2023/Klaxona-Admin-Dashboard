@@ -9,6 +9,7 @@ import { useLocale } from '../../hooks/useLocales.js' // Import the hook
 // Updated ROLES array to match your database enum
 const ROLES = ['CLIENT', 'DRIVER', 'DRIVER_MANAGER', 'ADMIN', 'SUPPORT']
 
+
 // Remove dictionary from props since we're using the hook now
 export default function UserManagementClient({ users: initialUsers, currentUserId }) {
     const [users, setUsers] = useState(initialUsers)
