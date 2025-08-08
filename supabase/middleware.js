@@ -1,10 +1,20 @@
+// utils/supabase/middleware.js (or wherever your file is)
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
 export async function updateSession(request) {
+    console.log('🔍 Middleware - Processing path:', request.nextUrl.pathname)
+    console.log('🔍 Middleware - Full URL:', request.nextUrl.href)
+
     let supabaseResponse = NextResponse.next({
         request,
     })
+
+    // Check environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.error('❌ Missing Supabase environment variables')
+        return supabaseResponse
+    }
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -25,43 +35,65 @@ export async function updateSession(request) {
                 },
             },
         }
-)
-
-    // Do not run code between createServerClient and
-    // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-    // issues with users being randomly logged out.
+    )
 
     // IMPORTANT: DO NOT REMOVE auth.getUser()
+    try {
+        const {
+            data: { user },
+            error
+        } = await supabase.auth.getUser()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+        console.log('👤 User check result:', {
+            hasUser: !!user,
+            userId: user?.id,
+            error: error?.message
+        })
 
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        !request.nextUrl.pathname.startsWith('/signup') &&
-        !request.nextUrl.pathname.startsWith('/error')
-    ) {
-        // FIXED: Redirect to signup instead of home page (/)
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'  // Changed from '/' to '/signup'
-        return NextResponse.redirect(url)
+        const pathname = request.nextUrl.pathname
+
+        // Check if it's a static file or API route
+        const isStaticFile = pathname.startsWith('/_next') ||
+            pathname.startsWith('/api') ||
+            pathname.includes('.') ||
+            pathname.startsWith('/favicon')
+
+        if (isStaticFile) {
+            console.log('⏭️ Skipping auth for static file:', pathname)
+            return supabaseResponse
+        }
+
+        // Define protected vs public routes
+        const publicRoutes = ['/login', '/auth', '/signup', '/error']
+        const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+
+        console.log('🛣️ Route analysis:', {
+            pathname,
+            isPublicRoute,
+            hasUser: !!user
+        })
+
+        // Redirect logic
+        if (!user && !isPublicRoute) {
+            console.log('🚫 REDIRECTING: User not authenticated, redirecting to login')
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            return NextResponse.redirect(url)
+        }
+
+        // If user is authenticated and trying to access auth pages
+        if (user && isPublicRoute) {
+            console.log('✅ REDIRECTING: Authenticated user accessing auth page, redirecting to dashboard')
+            const url = request.nextUrl.clone()
+            url.pathname = '/'
+            return NextResponse.redirect(url)
+        }
+
+        console.log('✨ ALLOWING: Request proceeding normally')
+        return supabaseResponse
+
+    } catch (error) {
+        console.error('❌ Middleware error:', error)
+        return supabaseResponse
     }
-
-    // IMPORTANT: You *must* return the supabaseResponse object as it is.
-    // If you're creating a new response object with NextResponse.next() make sure to:
-    // 1. Pass the request in it, like so:
-    //    const myNewResponse = NextResponse.next({ request })
-    // 2. Copy over the cookies, like so:
-    //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-    // 3. Change the myNewResponse object to fit your needs, but avoid changing
-    //    the cookies!
-    // 4. Finally:
-    //    return myNewResponse
-    // If this is not done, you may be causing the browser and server to go out
-    // of sync and terminate the user's session prematurely!
-
-    return supabaseResponse
 }
