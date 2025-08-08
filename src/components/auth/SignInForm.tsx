@@ -5,7 +5,7 @@ import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import LanguageSwitcher from "../header/LanguageSwitcher.js"; // Add this
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
+import {EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
 import { handelSignInWithCredentials, handelGoogleSignIn } from "../../../supabase/actions";

@@ -19,7 +19,7 @@ interface UseAuthOptions {
 
 export function useAuth(options: UseAuthOptions = {}) {
     const {
-        redirectTo = '/login',
+        redirectTo = '/signin',
         requireAuth = true,
         requireAdmin = false
     } = options
@@ -40,6 +40,9 @@ export function useAuth(options: UseAuthOptions = {}) {
 
                 const { data: authData, error: authError } = await supabase.auth.getUser()
 
+                if (authError) {
+                    throw authError
+                }
 
                 // If auth is required but no user found
                 if (requireAuth && !authData?.user) {
